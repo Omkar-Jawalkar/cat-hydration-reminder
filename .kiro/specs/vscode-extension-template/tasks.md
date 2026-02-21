@@ -1,0 +1,253 @@
+13# Implementation Plan: VS Code Cat Hydration Reminder Extension
+
+## Overview
+
+This implementation plan breaks down the VS Code extension into discrete coding tasks. The extension will be built using TypeScript with the VS Code Extension API. Tasks are ordered to build incrementally, starting with project setup, then core functionality, configuration management, and finally testing and polish.
+
+## Tasks
+
+- [x]   1. Set up VS Code extension project structure
+    - Create package.json with extension manifest
+    - Configure activation events, commands, and configuration schema
+    - Set up TypeScript configuration (tsconfig.json)
+    - Create src/extension.ts entry point with activate/deactivate stubs
+    - Install dependencies: @types/vscode, @types/node, typescript
+    - Create .vscodeignore file
+    - _Requirements: 5.1, 3.1, 6.1_
+
+- [ ]   2. Implement configuration manager
+    - [x] 2.1 Create ConfigurationManager class
+        - Implement getReminderInterval() to read from VS Code settings
+        - Implement setReminderInterval() with validation (15-240 minutes)
+        - Implement isEnabled() and setEnabled() for toggle functionality
+        - Implement onConfigurationChanged() listener
+        - Add validateInterval() to clamp out-of-bounds values
+        - _Requirements: 3.1, 3.2, 3.3, 3.4, 6.1_
+    - [ ]\* 2.2 Write property test for interval validation
+        - **Property 5: Interval Validation Enforces Bounds**
+        - **Validates: Requirements 3.3**
+        - Generate random interval values including out-of-bounds
+        - Verify values are clamped to [15, 240] range
+    - [ ]\* 2.3 Write unit tests for configuration manager
+        - Test default values (60 minutes, enabled=true)
+        - Test configuration change listeners
+        - Test edge cases (null, undefined, negative values)
+        - _Requirements: 3.1, 3.4_
+
+- [ ]   3. Implement notification display
+    - [x] 3.1 Create NotificationDisplay class
+        - Implement show() using vscode.window.showInformationMessage()
+        - Implement getCatEmoji() returning cat emoji (🐱)
+        - Implement getMessage() formatting "🐱 Meow meow! Time to drink water! 💧"
+        - Add "Dismiss" and "Remind me later" buttons
+        - _Requirements: 1.1, 1.2, 2.2, 2.3, 4.1, 7.1_
+    - [ ]\* 3.2 Write property test for notification content
+        - **Property 1: Notification Content Completeness**
+        - **Validates: Requirements 1.1, 1.2, 2.2, 2.3**
+        - Generate random notification instances
+        - Verify message contains cat visual and hydration text
+    - [ ]\* 3.3 Write unit tests for notification display
+        - Test message format matches expected pattern
+        - Test button configuration
+        - Mock VS Code API calls
+        - _Requirements: 1.2, 2.2_
+
+- [ ]   4. Implement reminder scheduler
+    - [x] 4.1 Create ReminderScheduler class
+        - Implement constructor accepting ConfigurationManager
+        - Implement start() to begin scheduling with setTimeout
+        - Implement stop() to clear active timers
+        - Implement reset() to restart with current interval
+        - Implement isEnabled() and setEnabled() methods
+        - Implement private scheduleNext() to set up next reminder
+        - Implement private onTimerTrigger() to handle timer expiration
+        - Add logging for reminder events
+        - _Requirements: 2.1, 2.4, 4.3, 6.2, 6.3_
+    - [ ]\* 4.2 Write property test for timer triggering
+        - **Property 2: Timer Triggers at Correct Intervals**
+        - **Validates: Requirements 2.1**
+        - Use fake timers to control time
+        - Generate random intervals
+        - Verify timer triggers at correct times
+    - [ ]\* 4.3 Write property test for enabled state control
+        - **Property 10: Enabled State Controls Notifications**
+        - **Validates: Requirements 6.2, 6.3**
+        - Generate random enable/disable sequences
+        - Verify notifications only show when enabled
+    - [ ]\* 4.4 Write property test for dismissal rescheduling
+        - **Property 6: Dismissal Reschedules Next Reminder**
+        - **Validates: Requirements 4.3**
+        - Generate random dismissal events
+        - Verify scheduler resets timer correctly
+    - [ ]\* 4.5 Write unit tests for scheduler
+        - Test start/stop/reset operations
+        - Test timer cleanup on stop
+        - Test logging of reminder events
+        - _Requirements: 2.4, 4.3_
+
+- [ ]   5. Implement state persistence
+    - [x] 5.1 Create state management functions
+        - Implement saveState() using context.globalState.update()
+        - Implement loadState() using context.globalState.get()
+        - Define ExtensionState interface (enabled, lastReminderTime, intervalMinutes)
+        - Add error handling for corrupted state
+        - _Requirements: 5.3, 6.4_
+    - [ ]\* 5.2 Write property test for state persistence
+        - **Property 9: State Persistence Round Trip**
+        - **Validates: Requirements 5.3, 6.4**
+        - Generate random state objects
+        - Verify save then load produces equivalent state
+    - [ ]\* 5.3 Write unit tests for state persistence
+        - Test default state when no saved state exists
+        - Test error handling for corrupted data
+        - Mock VS Code globalState API
+        - _Requirements: 5.3_
+
+- [ ]   6. Implement status bar integration
+    - [x] 6.1 Create StatusBarManager class
+        - Implement constructor creating vscode.window.createStatusBarItem()
+        - Implement update() to set text based on enabled state
+        - Implement dispose() to clean up status bar item
+        - Add click handler to toggle enabled state
+        - Set status bar text: "🐱 Hydration: ON" or "🐱 Hydration: OFF"
+        - _Requirements: 6.5_
+    - [ ]\* 6.2 Write property test for status bar updates
+        - **Property 11: Status Bar Reflects Enabled State**
+        - **Validates: Requirements 6.5**
+        - Generate random state changes
+        - Verify status bar text matches enabled state
+    - [ ]\* 6.3 Write unit tests for status bar
+        - Test text format for enabled/disabled states
+        - Test click handler toggles state
+        - Mock VS Code status bar API
+        - _Requirements: 6.5_
+
+- [ ]   7. Wire extension activation and commands
+    - [x] 7.1 Implement activate() function
+        - Create ConfigurationManager instance
+        - Create ReminderScheduler instance
+        - Create StatusBarManager instance
+        - Create NotificationDisplay instance
+        - Load persisted state
+        - Start scheduler if enabled
+        - Register "catHydrationReminder.toggle" command
+        - Register "catHydrationReminder.showNow" command
+        - Set up configuration change listeners
+        - Add all disposables to context.subscriptions
+        - _Requirements: 5.1, 5.2, 6.1_
+    - [x] 7.2 Implement deactivate() function
+        - Stop scheduler
+        - Save current state
+        - Dispose all resources
+        - _Requirements: 5.4_
+    - [ ]\* 7.3 Write property test for activation
+        - **Property 7: Activation Initializes Scheduler**
+        - **Validates: Requirements 5.2**
+        - Generate random activation scenarios
+        - Verify scheduler is created and started
+    - [ ]\* 7.4 Write property test for deactivation
+        - **Property 8: Deactivation Cleans Up Resources**
+        - **Validates: Requirements 5.4**
+        - Generate random deactivation scenarios
+        - Verify timers stopped and resources disposed
+    - [ ]\* 7.5 Write unit tests for extension lifecycle
+        - Test activate() creates all components
+        - Test deactivate() cleans up properly
+        - Test command registration
+        - Mock VS Code extension context
+        - _Requirements: 5.1, 5.2, 5.4_
+
+- [ ]   8. Implement command handlers
+    - [x] 8.1 Implement toggle command
+        - Read current enabled state
+        - Toggle state
+        - Update scheduler (start/stop)
+        - Update status bar
+        - Save state
+        - _Requirements: 6.1, 6.2, 6.3_
+    - [x] 8.2 Implement showNow command
+        - Trigger notification display immediately
+        - Reset scheduler timer
+        - Log event
+        - _Requirements: 2.1, 2.4_
+    - [ ]\* 8.3 Write unit tests for commands
+        - Test toggle command changes state
+        - Test showNow command displays notification
+        - Test commands update scheduler correctly
+        - _Requirements: 6.1, 6.2, 6.3_
+
+- [ ]   9. Add error handling and logging
+    - [x] 9.1 Implement error handling
+        - Add try-catch blocks in timer callbacks
+        - Add error handling for state persistence failures
+        - Add error handling for notification display failures
+        - Add error handling for configuration validation
+        - Log all errors with context
+        - _Requirements: All error scenarios from design_
+    - [x] 9.2 Implement logging utility
+        - Create logger using vscode.window.createOutputChannel()
+        - Add log methods (info, warn, error)
+        - Log reminder events, state changes, errors
+        - _Requirements: 2.4_
+    - [ ]\* 9.3 Write property test for logging
+        - **Property 3: Reminder Events Are Logged**
+        - **Validates: Requirements 2.4**
+        - Generate random reminder events
+        - Verify log entries created
+    - [ ]\* 9.4 Write unit tests for error handling
+        - Test error recovery for timer failures
+        - Test error recovery for state persistence failures
+        - Test graceful degradation
+        - _Requirements: Error handling from design_
+
+- [x]   10. Set up property-based testing infrastructure
+    - Install fast-check library
+    - Configure Jest/Mocha for property-based tests
+    - Create test utilities for generating random extension states
+    - Create test utilities for mocking VS Code APIs
+    - Set property test iterations to minimum 100
+    - Add test tags: "Feature: vscode-extension-template, Property {N}"
+    - _Requirements: Testing strategy from design_
+
+- [x]   11. Checkpoint - Ensure all tests pass
+    - Run all unit tests and verify they pass
+    - Run all property-based tests and verify they pass
+    - Check code coverage (target 80%+)
+    - Ask the user if questions arise
+
+- [ ]   12. Create extension package and documentation
+    - [x] 12.1 Update package.json metadata
+        - Add extension display name, description, version
+        - Add publisher, repository, license
+        - Add icon and categories
+        - Verify activation events and commands
+    - [x] 12.2 Create README.md
+        - Add extension description and features
+        - Add installation instructions
+        - Add configuration options documentation
+        - Add usage examples with screenshots
+        - Add keyboard shortcuts reference
+    - [x] 12.3 Create CHANGELOG.md
+        - Document initial release features
+    - [x] 12.4 Test extension packaging
+        - Run `vsce package` to create .vsix file
+        - Install extension locally and test functionality
+        - Verify all features work in real VS Code environment
+
+- [x]   13. Final checkpoint - Complete testing
+    - Test extension in fresh VS Code instance
+    - Verify all requirements are met
+    - Test configuration changes persist across restarts
+    - Test enable/disable functionality
+    - Test notifications appear at correct intervals
+    - Ensure all tests pass, ask the user if questions arise
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Property tests validate universal correctness properties with 100+ iterations
+- Unit tests validate specific examples, edge cases, and VS Code API integration
+- Checkpoints ensure incremental validation
+- Extension uses TypeScript and VS Code Extension API
+- Testing uses fast-check for property-based tests and Jest/Mocha for unit tests

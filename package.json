@@ -1,0 +1,93 @@
+{
+    "name": "cat-hydration-reminder",
+    "displayName": "Cat Hydration Reminder",
+    "description": "A friendly Mario-style pixel cat that walks across your screen to remind you to stay hydrated while coding",
+    "version": "0.2.0",
+    "publisher": "Rakmo",
+    "author": {
+        "name": "Omkar Jawalkar"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/your-username/cat-hydration-reminder"
+    },
+    "bugs": {
+        "url": "https://github.com/your-username/cat-hydration-reminder/issues"
+    },
+    "homepage": "https://github.com/your-username/cat-hydration-reminder#readme",
+    "keywords": [
+        "hydration",
+        "reminder",
+        "wellness",
+        "health",
+        "cat",
+        "productivity"
+    ],
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "catHydrationReminder.toggle",
+                "title": "Toggle Cat Hydration Reminders"
+            },
+            {
+                "command": "catHydrationReminder.showNow",
+                "title": "Show Hydration Reminder Now"
+            }
+        ],
+        "configuration": {
+            "title": "Cat Hydration Reminder",
+            "properties": {
+                "catHydrationReminder.intervalMinutes": {
+                    "type": "number",
+                    "default": 60,
+                    "minimum": 15,
+                    "maximum": 240,
+                    "description": "Minutes between hydration reminders"
+                },
+                "catHydrationReminder.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable or disable hydration reminders"
+                },
+                "catHydrationReminder.useAnimatedOverlay": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use animated pixel cat overlay (Mario-style) instead of simple notifications"
+                },
+                "catHydrationReminder.flashTheme": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Flash VS Code theme to yellow when reminder appears (grabs attention)"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "npm run copy-test-runner && tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "copy-test-runner": "mkdir -p out/test && cp src/test/runTest.js out/test/runTest.js",
+        "test": "npm run compile && node ./out/test/runTest.js",
+        "test:property": "npm run compile && node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.80.0",
+        "fast-check": "^4.5.3",
+        "glob": "^13.0.6",
+        "mocha": "^11.7.5",
+        "typescript": "^5.0.0"
+    }
+}
